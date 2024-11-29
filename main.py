@@ -35,6 +35,10 @@ def create_main_window():
     tree.heading("Model", text="Model")
     tree.heading("Year", text="Year")
     tree.heading("Price", text="Price")
+    
+    for col in ("ID", "Make", "Model", "Year", "Price"):
+        tree.column(col, anchor="center", width=150)
+
     tree.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
 
     scrollbar = ttk.Scrollbar(display_frame, orient="vertical", command=tree.yview)
@@ -47,10 +51,7 @@ def create_main_window():
     crud_frame = ttk.Frame(cars_tab)
     crud_frame.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
 
-    # def adding_car():
-    #     return add_car(tree)
-
-    ttk.Button(crud_frame, command= lambda: add_car(tree), text="Add New Car").grid(
+    ttk.Button(crud_frame, command=lambda: add_car(tree), text="Add New Car").grid(
         row=0, column=0, pady=10, padx=5, sticky="ew"
     )
     ttk.Button(crud_frame, text="Edit Selected Car").grid(
@@ -62,6 +63,16 @@ def create_main_window():
     ttk.Button(crud_frame, text="Refresh List").grid(
         row=3, column=0, pady=10, padx=5, sticky="ew"
     )
+
+    try:
+        with open('cars.csv', 'r') as file:
+            reader = csv.reader(file)
+            next(reader)
+
+            for row in reader:
+                tree.insert('', 'end', values=row)
+    except FileNotFoundError:
+        pass
 
     return root
 
@@ -79,48 +90,50 @@ def add_car(tree):
     model_input = ttk.Entry(window)
     model_input.grid(row=1, column=1)
 
-    ttk.Label(window, text="YEAR: ").grid(row=2, column=0, padx=5, pady=5)
+    ttk.Label(window, text="Year: ").grid(row=2, column=0, padx=5, pady=5)
     year_input = ttk.Entry(window)
     year_input.grid(row=2, column=1)
 
-    ttk.Label(window, text="Prise: ").grid(row=3, column=0, padx=5, pady=5)
-    prise_input = ttk.Entry(window)
-    prise_input.grid(row=3, column=1)
+    ttk.Label(window, text="Price: ").grid(row=3, column=0, padx=5, pady=5)
+    price_input = ttk.Entry(window)
+    price_input.grid(row=3, column=1)
 
     def save_car():
         make = make_input.get()
         model = model_input.get()
         year = year_input.get()
-        prise = prise_input.get()
+        price = price_input.get()
 
-        if not all([make, model, year, prise]):
+        if not all([make, model, year, price]):
             messagebox.showerror("Error", "Fill all fields")
             return
-        
+
         try:
             try:
-                with open('cars.csv', "r") as file:
+                with open('cars.csv', 'r') as file:
                     reader = csv.reader(file)
                     next(reader)
 
                     cars = list(reader)
-                    next_id = str (len(cars) + 1)
+                    next_id = str(len(cars) + 1)
             except FileNotFoundError:
-                with open('cars.csv', 'w', newline= ' ') as file:
+                with open('cars.csv', 'w', newline='') as file:
                     writer = csv.writer(file)
-                    writer.writerow(["ID", "Make", "Model", "Year", "Prise"])
+                    writer.writerow(["ID", "Make", "Model", "Year", "Price"])
                     next_id = "1"
-
-            with open ('cars.csv', 'a', newline=' ') as file:
+            
+            with open('cars.csv', 'a', newline='') as file:
                 writer = csv.writer(file)
-                writer.writerow([next_id, make, model, year, prise])
+                writer.writerow([next_id, make, model, year, price])
 
-            tree.insert('','end', values=(next_id,make, model, year, prise))
-            messagebox.showinfo("Succcess", "Car adden successfully")
+            # Insert the new car entry into the Treeview dynamically
+            tree.insert('', 'end', values=(next_id, make, model, year, price))
+            messagebox.showinfo("Success", "Car added successfully")
         except Exception as e:
-            messagebox.showerror("Error", f"Error occured: {str(e)}")
-    ttk.Button(window, text="Save car", command=save_car).grid(row=4, column=0, columnspan=2, pady=20)
-
+            messagebox.showerror("Error", f"Error occurred: {str(e)}")
+    
+    ttk.Button(window, text='Save Car', command=save_car).grid(row=4, column=0,
+        columnspan=2, pady=20)
 
 
 def main():
